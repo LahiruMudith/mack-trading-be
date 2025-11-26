@@ -1,0 +1,43 @@
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage and test output
+coverage/
+.nyc_output/
+
+# Caches
+.cache/
+.parcel-cache/
+.next/          # Next.js
+.nuxt/          # Nuxt.js
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor/IDE
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+
+# Misc
+.pnp.*
