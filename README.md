@@ -1,6 +1,6 @@
-# Juki Machine Shop — Backend (Node, Express & MongoDB)
+# Juki Machine Item — Backend (Node, Express & MongoDB)
 
-A RESTful backend API for the Juki Machine Shop MERN storefront. Handles products (machines), inventory, admin authentication, inquiries, orders, blog posts, image uploads, email notifications, and an optional AI proxy for Gemini.
+A RESTful backend API for the Juki Machine Item MERN storefront. Handles products (machines), inventory, admin authentication, inquiries, orders, blog posts, image uploads, email notifications, and an optional AI proxy for Gemini.
 
 ## Tech stack
 - Node.js, Express
