@@ -9,6 +9,8 @@ const SERVER_PORT = process.env.SERVER_PORT
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+app.use("mack-trading/api/v1/user", )
 app.get('/', (req:Request, res:Response) => {
     res.send('BackEnd Running...')
 })
