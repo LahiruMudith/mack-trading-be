@@ -30,6 +30,7 @@ export interface IAddress extends Document{
     country:Country
     phone_number_01:string
     phone_number_02:string
+    isDefault:boolean
     user_id:mongoose.Types.ObjectId
 }
 
@@ -42,6 +43,7 @@ const addressSchema = new Schema<IAddress>({
     country: { type:String, enum:Object.values(Country), default:Country.SRI_LANKA, required:true },
     phone_number_01: { type:String, required:true },
     phone_number_02: { type:String, required:true },
+    isDefault: {type:Boolean, required:true},
     user_id: { type:mongoose.Types.ObjectId, ref:'User', required:true },
     },
     {

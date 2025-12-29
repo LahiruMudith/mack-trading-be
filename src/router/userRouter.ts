@@ -5,7 +5,7 @@ import {authenticateUser} from "../middelware/auth";
 const router = Router()
 
 router.post('/save', saveUser)
-router.get('/get', authenticateUser, getUser)
+router.get('/get/:email', getUser)
 router.put('/update', authenticateUser, updateUser)
 router.delete('/delete', authenticateUser, deleteUser)
 
