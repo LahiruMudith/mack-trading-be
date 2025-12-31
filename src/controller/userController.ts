@@ -1,6 +1,5 @@
 import {Response, Request} from 'express'
-import {authRequest} from "../middelware/auth";
-import {IUser, User} from "../model/User";
+import {User} from "../model/User";
 
 export const saveUser = async (req:Request, res:Response) => {
     const { email, name, password} = req.body
@@ -48,6 +47,34 @@ export const getUser = async (req:Request, res:Response) => {
     });
 }
 
-export const updateUser = (req:Request, res:Response) => {}
+export const updateUser = async (req: Request, res: Response) => {
+    const userEmail = req.params.email;
 
-export const deleteUser = (req:Request, res:Response) => {}
+    const updatedUser = await User.findOneAndUpdate(
+        { email: userEmail },
+        { $set: req.body },
+        { new: true }
+    );
+
+    if (!updatedUser) {
+        return res.status(404).json({ "message": "User Not Found" });
+    }
+
+    res.status(200).json({
+        "message": "Update success",
+        "data": updatedUser
+    });
+}
+
+
+export const deleteUser = async (req: Request, res: Response) => {
+    const email = req.params.email;
+
+    const user = await User.findOneAndDelete({ email: email });
+
+    if (!user) {
+        return res.status(404).json({ "message": "User Not Found" });
+    }
+
+    res.status(200).json({ "message": "User deleted successfully" });
+}

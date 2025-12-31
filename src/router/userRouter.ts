@@ -6,7 +6,7 @@ const router = Router()
 
 router.post('/save', saveUser)
 router.get('/get/:email', getUser)
-router.put('/update', authenticateUser, updateUser)
-router.delete('/delete', authenticateUser, deleteUser)
+router.put('/update/:email' , updateUser)
+router.delete('/delete/:email', deleteUser)
 
 export default router;
