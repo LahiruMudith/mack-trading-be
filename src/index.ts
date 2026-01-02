@@ -1,7 +1,9 @@
 import type {Response, Request} from "express";
 import dotenv from "dotenv"
 import * as mongoose from "mongoose";
-import userRouter from "./router/userRouter";
+import userRouter from "./routes/userRouter";
+import galleryRouter from "./routes/galleryRouter";
+import bodyParser from 'body-parser';
 dotenv.config()
 
 const MONGO_URI = process.env.MONGO_URL as string
@@ -11,7 +13,11 @@ const express = require('express')
 const app = express()
 
 app.use(express.json())
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use("/mack-trading/api/v1/user", userRouter)
+app.use("/mack-trading/api/v1/gallery", galleryRouter)
 app.get('/', (req:Request, res:Response) => {
     res.send('BackEnd Running...')
 })

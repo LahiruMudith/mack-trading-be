@@ -1,5 +1,5 @@
 import {Response, Request} from 'express'
-import {User} from "../model/User";
+import {User} from "../models/User";
 
 export const saveUser = async (req:Request, res:Response) => {
     const { email, name, password} = req.body
@@ -78,3 +78,15 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     res.status(200).json({ "message": "User deleted successfully" });
 }
+
+export const getAllUser = async (req: Request, res: Response) => {
+    try {
+        const user = await User.find();
+        res.status(200).json({
+            message: "Success",
+            data: user
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching items", error });
+    }
+};

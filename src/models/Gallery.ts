@@ -19,4 +19,4 @@ const gallerySchema = new Schema<IGallery>({
     }
 )
 
-const Gallery = mongoose.model<IGallery>('Gallery', gallerySchema)
+export const Gallery = mongoose.model<IGallery>('Gallery', gallerySchema)

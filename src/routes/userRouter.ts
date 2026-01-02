@@ -1,11 +1,12 @@
 import {Router} from "express";
-import {deleteUser, getUser, saveUser, updateUser} from "../controller/userController";
+import {deleteUser, getAllUser, getUser, saveUser, updateUser, userLogin} from "../controllers/userController";
 import {authenticateUser} from "../middelware/auth";
 
 const router = Router()
 
-router.post('/save', saveUser)
+router.post('/register', saveUser)
 router.get('/get/:email', getUser)
+router.get('/get-all', getAllUser)
 router.put('/update/:email' , updateUser)
 router.delete('/delete/:email', deleteUser)
 

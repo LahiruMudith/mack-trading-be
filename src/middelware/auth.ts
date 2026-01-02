@@ -1,4 +1,4 @@
-import {IUser} from "../model/User";
+import {IUser} from "../models/User";
 import {NextFunction, Request, Response} from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
