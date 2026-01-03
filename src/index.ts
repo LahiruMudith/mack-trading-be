@@ -4,6 +4,7 @@ import * as mongoose from "mongoose";
 import userRouter from "./routes/userRouter";
 import galleryRouter from "./routes/galleryRouter";
 import bodyParser from 'body-parser';
+import addressRouter from "./routes/addressRouter";
 dotenv.config()
 
 const MONGO_URI = process.env.MONGO_URL as string
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/mack-trading/api/v1/user", userRouter)
 app.use("/mack-trading/api/v1/gallery", galleryRouter)
+app.use("/mack-trading/api/v1/address", addressRouter)
 app.get('/', (req:Request, res:Response) => {
     res.send('BackEnd Running...')
 })

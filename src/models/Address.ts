@@ -51,4 +51,4 @@ const addressSchema = new Schema<IAddress>({
     }
 )
 
-const Address = mongoose.model<IAddress>('Address', addressSchema)
+export const Address = mongoose.model<IAddress>('Address', addressSchema)
