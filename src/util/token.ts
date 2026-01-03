@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 
 dotenv.config()
 
-const JWT_SECRETS = process.env.JWT_SECRETS as string;
+const JWT_SECRETS = process.env.JWT_SECRET as string;
 
 export const signAccessToken = (user:IUser)=>{
     return jwt.sign(

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 dotenv.config()
 
-const JWT_REFRESH_SECRETS = process.env.JWT_REFRESH_SECRETS as string;
+const JWT_REFRESH_SECRETS = process.env.JWT_REFRESH_SECRET as string;
 
 export const signRefreshToken = (user : IUser) => {
     return jwt.sign(
