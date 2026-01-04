@@ -23,7 +23,7 @@ const orderSchema = new Schema<IOrder>({
     tracking_number: { type:String, required:true },
     date: { type:Date, required:true },
     status: { type:String, enum:Object.values(OrderStatus), default:OrderStatus.PENDING, required:true },
-    items: { type:[String], required:true },
+    items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true }],
     est_delivery: { type:Date, required:true },
     user_id: { type:mongoose.Types.ObjectId, ref:'User', required:true },
     address_id: { type:mongoose.Types.ObjectId, ref:'Address', required:true },
@@ -33,4 +33,4 @@ const orderSchema = new Schema<IOrder>({
     }
 )
 
-const Order = mongoose.model<IOrder>('Order', orderSchema)
+export const Order = mongoose.model<IOrder>('Order', orderSchema)

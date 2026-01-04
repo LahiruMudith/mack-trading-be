@@ -6,6 +6,7 @@ import galleryRouter from "./routes/galleryRouter";
 import bodyParser from 'body-parser';
 import addressRouter from "./routes/addressRouter";
 import itemRouter from "./routes/itemRouter";
+import paymentRouter from "./routes/paymentRouter";
 dotenv.config()
 
 const MONGO_URI = process.env.MONGO_URL as string
@@ -22,6 +23,7 @@ app.use("/mack-trading/api/v1/user", userRouter)
 app.use("/mack-trading/api/v1/gallery", galleryRouter)
 app.use("/mack-trading/api/v1/address", addressRouter)
 app.use("/mack-trading/api/v1/item", itemRouter)
+app.use("/mack-trading/api/v1/payment", paymentRouter)
 
 app.get('/', (req:Request, res:Response) => {
     res.send('BackEnd Running...')
