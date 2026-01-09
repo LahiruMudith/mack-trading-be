@@ -21,6 +21,7 @@
   "homepage": "https://github.com/LahiruMudith/mack-trading-be#readme",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/md5": "^2.3.6",

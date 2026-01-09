@@ -1,22 +1,27 @@
 import nodemailer from 'nodemailer';
 
 export const sendPasswordEmail = async (email: string, password: string) => {
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
 
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Your New Login Password',
-        text: `Your temporary password is: ${password}. Please login and change it immediately.`
-    };
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your New Account Password',
+            text: `Welcome! Your account has been created via Google Login.\n\nYour temporary password is: ${password}\n\nPlease login and change it immediately.`,
+        };
 
-    await transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
+        console.log("Password email sent successfully");
+    } catch (error) {
+        console.error("Error sending email:", error);
+    }
 };
 
 export const sendUserWelcomeEmail = async (email: string, name: string) => {

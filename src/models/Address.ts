@@ -26,7 +26,7 @@ export interface IAddress extends Document{
     address:string
     city:string
     state:string
-    zip:string
+    zipCode:string
     country:Country
     phone_number_01:string
     phone_number_02:string
@@ -39,7 +39,7 @@ const addressSchema = new Schema<IAddress>({
     address: { type:String, required:true },
     city: { type:String, required:true },
     state: { type:String, required:true },
-    zip: { type:String, required:true },
+    zipCode: { type:String, required:true },
     country: { type:String, enum:Object.values(Country), default:Country.SRI_LANKA, required:true },
     phone_number_01: { type:String, required:true },
     phone_number_02: { type:String, required:true },

@@ -5,7 +5,7 @@ import {authRequest} from "../middelware/auth"; // ඔබේ Model path එක
 export const createAddress = async (req: authRequest, res: Response) => {
     try {
         const {
-            type, address, city, state, zip, country,
+            type, address, city, state, zipCode, country,
             phone_number_01, phone_number_02, isDefault
         } = req.body;
 
@@ -27,7 +27,7 @@ export const createAddress = async (req: authRequest, res: Response) => {
             address,
             city,
             state,
-            zip,
+            zipCode,
             country,
             phone_number_01,
             phone_number_02,

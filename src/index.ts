@@ -1,5 +1,6 @@
 import type {Response, Request} from "express";
 import dotenv from "dotenv"
+import cors from "cors";
 import * as mongoose from "mongoose";
 import userRouter from "./routes/userRouter";
 import galleryRouter from "./routes/galleryRouter";
@@ -15,6 +16,11 @@ const SERVER_PORT = process.env.SERVER_PORT
 
 const express = require('express')
 const app = express()
+
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true
+}))
 
 app.use(express.json())
 app.use(bodyParser.json());

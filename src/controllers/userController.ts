@@ -3,7 +3,14 @@ import {User} from "../models/User";
 import bcrypt from 'bcrypt';
 import {signAccessToken} from "../util/token";
 import {signRefreshToken} from "../util/refreshToken";
-import {sendUserWelcomeEmail} from "../util/emailService";
+import {sendPasswordEmail, sendUserWelcomeEmail} from "../util/emailService";
+import crypto from 'crypto';
+import jwt, {JwtPayload} from "jsonwebtoken";
+import dotenv from "dotenv";
+import {authRequest} from "../middelware/auth";
+dotenv.config()
+
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
 export const saveUser = async (req: Request, res: Response) => {
     try {
@@ -43,6 +50,7 @@ export const saveUser = async (req: Request, res: Response) => {
         // 7. Success Response
         return res.status(201).json({
             message: "User Saved Success & Email Sent",
+            code:201,
             data: savedUser
         });
 
@@ -64,6 +72,7 @@ export const getUser = async (req:Request, res:Response) => {
     }
 
     res.status(200).json({
+        code:200,
         "message": "Success",
         "data": user
     });
@@ -93,9 +102,10 @@ export const userLogin = async (req:Request, res:Response)=>{
         const {email, password} = req.body;
 
         const existingUser = await User.findOne({email: email})
+
         if (!existingUser) {
-            return res.status(400).json({
-                message: "This User Already Exist"
+            return res.status(404).json({
+                message: "Cannot find user"
             })
         }
         const bcrypt = require('bcrypt');
@@ -108,23 +118,28 @@ export const userLogin = async (req:Request, res:Response)=>{
         const accessToken = signAccessToken(existingUser)
         const refreshToken = signRefreshToken(existingUser)
 
+        const isProduction = process.env.NODE_ENV === 'production';
+
         // Access Token Cookie
         res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
             maxAge: 60 * 60 * 1000
         });
 
         // Refresh Token Cookie
         res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
+        // //email
+        // res.cookie('userEmail', existingUser.email, {
+        //     httpOnly: false,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 60 * 60 * 1000
+        // });
+
         res.status(200).json({
+            code:200,
             message: "Login Success",
             email: existingUser.email,
             role: existingUser.role,
@@ -140,16 +155,79 @@ export const userLogin = async (req:Request, res:Response)=>{
     }
 }
 
+export const googleLogin = async (req: Request, res: Response) => {
+    try {
+        const { email, name } = req.body;
+
+        let user = await User.findOne({ email: email });
+        let isNewUser = false;
+
+        if (!user) {
+            isNewUser = true;
+
+            const rawPassword = crypto.randomBytes(5).toString('hex');
+
+            // Password එක Hash කරන්න
+            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+            user = new User({
+                name,
+                email,
+                password: hashedPassword
+            });
+
+            user = await user.save();
+
+            sendPasswordEmail(email, rawPassword);
+        }
+
+        const accessToken = signAccessToken(user);
+        const refreshToken = signRefreshToken(user);
+
+        // Access Token Cookie
+        res.cookie('accessToken', accessToken, {
+            maxAge: 60 * 60 * 1000
+        });
+
+        // Refresh Token Cookie
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+        // //email
+        // res.cookie('userEmail', user.email, {
+        //     httpOnly: false,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 60 * 60 * 1000
+        // });
+
+        // Response එක යවන්න
+        res.status(isNewUser ? 201 : 200).json({
+            email: user.email,
+            role: user.role,
+            isNewUser: isNewUser,
+            accessToken,
+            refreshToken
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal server error during Google Login"
+        });
+    }
+};
+
 export const userLogout = (req: Request, res: Response) => {
     try {
         res.clearCookie('accessToken', {
-            httpOnly: true,
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         });
 
         res.clearCookie('refreshToken', {
-            httpOnly: true,
+            httpOnly: false,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         });
@@ -185,5 +263,82 @@ export const getAllUser = async (req: Request, res: Response) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Error fetching items", error });
+    }
+};
+
+export const handleRefreshToken = async (req: Request, res: Response) => {
+    try {
+        const refreshToken = req.body.token;
+
+        if (!refreshToken) {
+            return res.status(401).json({ message: "Refresh Token is required" });
+        }
+
+        const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET as string) as JwtPayload;
+
+        const user = await User.findById(payload._id);
+
+        if (!user) {
+            return res.status(403).json({ message: "User not found" });
+        }
+
+        const accessToken = signAccessToken(user);
+
+        res.cookie('accessToken', accessToken, { maxAge: 60 * 60 * 1000 });
+
+        return res.status(200).json({ accessToken });
+    } catch (e) {
+        console.error(e);
+        return res.status(403).json({ message: "Invalid or Expired Refresh Token" });
+    }
+}
+
+export const updatePassword = async (req: authRequest, res: Response) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        // 1. Get the User ID from the request (attached by your auth middleware)
+        // Adjust 'req.user.id' based on how your middleware attaches the user
+        const userId = (req as any).user?._id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized: User not found in session." });
+        }
+
+        // 2. Find the user in the database
+        const user = await User.findById(userId).select('+password'); // Ensure password field is selected if hidden by default
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // 3. Verify the Current Password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password is incorrect." });
+        }
+
+        // 4. Validate New Password Strength (Optional but recommended)
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "New password must be at least 6 characters long." });
+        }
+
+        // 5. Hash the New Password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // 6. Update and Save
+        user.password = hashedPassword;
+        await user.save();
+
+        return res.status(200).json({
+            code: 200,
+            message: "Password updated successfully."
+        });
+
+    } catch (error) {
+        console.error("Update Password Error:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 };
