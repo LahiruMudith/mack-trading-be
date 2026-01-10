@@ -3,6 +3,13 @@ import { Cart } from "../models/cart";
 import { Item } from "../models/Item";
 import {authRequest} from "../middelware/auth";
 
+const calculateCartTotal = (cart: any) => {
+    return cart.items.reduce((sum: number, item: any) => {
+        return sum + (item.price * item.quantity);
+    }, 0);
+};
+
+
 export const addToCart = async (req: authRequest, res: Response) => {
     try {
         const userId = req.user?._id; // Assumes your auth middleware adds this
@@ -65,18 +72,33 @@ export const addToCart = async (req: authRequest, res: Response) => {
     }
 };
 
+// --- GET: Fetch Cart & Total ---
 export const getCart = async (req: authRequest, res: Response) => {
     try {
-        // Find cart by User ID and populate product details
-        // We use 'items.product' because your schema references 'Item' or 'Product' there
         const cart = await Cart.findOne({ user: req.user._id })
-            .populate('items.product');
+            .populate('items.product'); // Populate product details for display
 
         if (!cart) {
-            return res.status(200).json({ items: [] });
+            return res.status(200).json({
+                items: [],
+                totalAmount: 0
+            });
         }
 
-        res.status(200).json(cart);
+        // 1. Calculate Total Dynamically
+        const totalAmount = calculateCartTotal(cart);
+
+        // 2. (Optional) Save this total to the database if you want to persist it
+        cart.totalAmount = totalAmount;
+        await cart.save();
+
+        // 3. Return the calculated total along with items
+        res.status(200).json({
+            _id: cart._id,
+            items: cart.items,
+            totalAmount: totalAmount // <--- The secure total
+        });
+
     } catch (error) {
         console.error("Error fetching cart:", error);
         res.status(500).json({ message: "Server Error" });

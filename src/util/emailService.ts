@@ -1,5 +1,13 @@
 import nodemailer from 'nodemailer';
 
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.EMAIL_PASS  // Your Gmail App Password (NOT your login password)
+    }
+});
+
 export const sendPasswordEmail = async (email: string, password: string) => {
     try {
         const transporter = nodemailer.createTransport({
@@ -25,13 +33,6 @@ export const sendPasswordEmail = async (email: string, password: string) => {
 };
 
 export const sendUserWelcomeEmail = async (email: string, name: string) => {
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER, // .env එකේ ඇති email එක
-            pass: process.env.EMAIL_PASS  // .env එකේ ඇති app password එක
-        }
-    });
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -107,4 +108,60 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
     `
     };
     await transporter.sendMail(mailOptions);
+};
+
+export const sendOrderConfirmationEmail = async (toEmail: string, order: any, user: any) => {
+
+    // Generate Item Rows for the Table
+    const itemsHtml = order.items.map((item: any) => `
+        <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.item.name || 'Product'}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.qty}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">LKR ${(item.item.price * item.qty).toFixed(2)}</td>
+        </tr>
+    `).join('');
+
+    // Email Template
+    const mailOptions = {
+        from: `"Mack Trading" <${process.env.EMAIL_USER}>`,
+        to: toEmail,
+        subject: `Order Confirmation - ${order.tracking_number}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #061653;">Thank you for your order!</h2>
+                <p>Hi ${user.firstName},</p>
+                <p>We have received your order. Here are the details:</p>
+                
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <p><strong>Order ID:</strong> ${order.tracking_number}</p>
+                    <p><strong>Total Amount:</strong> LKR ${order.totalAmount.toFixed(2)}</p>
+                    <p><strong>Status:</strong> ${order.status}</p>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #061653; color: white;">
+                            <th style="padding: 10px; text-align: left;">Item</th>
+                            <th style="padding: 10px; text-align: left;">Qty</th>
+                            <th style="padding: 10px; text-align: left;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+
+                <p style="margin-top: 20px;">We will notify you once your items are shipped.</p>
+                <p style="color: #888; font-size: 12px;">Mack Trading Team</p>
+            </div>
+        `
+    };
+
+    // Send the email
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Order confirmation sent to ${toEmail}`);
+    } catch (error) {
+        console.error("Error sending email:", error);
+    }
 };
