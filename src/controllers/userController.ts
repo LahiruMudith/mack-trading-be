@@ -99,61 +99,65 @@ export const updateUser = async (req: Request, res: Response) => {
     });
 }
 
-export const userLogin = async (req:Request, res:Response)=>{
+export const userLogin = async (req: Request, res: Response) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
 
-        const existingUser = await User.findOne({email: email})
+        const existingUser = await User.findOne({ email: email });
 
         if (!existingUser) {
             return res.status(404).json({
                 message: "Cannot find user"
-            })
+            });
         }
-        const bcrypt = require('bcrypt');
-        const isPassword = await bcrypt.compare(password, existingUser.password)
+
+        // Removed "require('bcrypt')" because you should import it at the top of the file
+        const isPassword = await bcrypt.compare(password, existingUser.password);
+
         if (!isPassword) {
             return res.status(400).json({
                 message: "Invalid password"
-            })
+            });
         }
-        const accessToken = signAccessToken(existingUser)
-        const refreshToken = signRefreshToken(existingUser)
 
+        const accessToken = signAccessToken(existingUser);
+        const refreshToken = signRefreshToken(existingUser);
+
+        // --- KEY FIX: Production vs Local Cookie Settings ---
         const isProduction = process.env.NODE_ENV === 'production';
+
+        const cookieOptions = {
+            httpOnly: true, // Security: Prevents JS from reading the cookie
+            secure: isProduction, // HTTPS required in production
+            sameSite: isProduction ? 'none' as const : 'lax' as const, // Cross-site support
+        };
 
         // Access Token Cookie
         res.cookie('accessToken', accessToken, {
-            maxAge: 60 * 60 * 1000
+            ...cookieOptions,
+            maxAge: 60 * 60 * 1000 // 1 Hour
         });
 
         // Refresh Token Cookie
         res.cookie('refreshToken', refreshToken, {
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            ...cookieOptions,
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 Days
         });
 
-        // //email
-        // res.cookie('userEmail', existingUser.email, {
-        //     httpOnly: false,
-        //     secure: process.env.NODE_ENV === 'production',
-        //     sameSite: 'strict',
-        //     maxAge: 60 * 60 * 1000
-        // });
-
         res.status(200).json({
-            code:200,
+            code: 200,
             message: "Login Success",
             email: existingUser.email,
             role: existingUser.role,
             accessToken,
             refreshToken
-        })
+        });
 
-    }catch (error) {
-        console.error(error)
+    } catch (error) {
+        console.error(error);
         res.status(500).json({
             message: "Internal server error while logging in..!"
-        })
+        });
     }
 }
 
