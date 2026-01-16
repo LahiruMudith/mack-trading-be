@@ -75,7 +75,7 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
                                     </p>
 
                                     <div style="text-align: center; margin: 30px 0;">
-                                        <a href="http://your-website-url.com/login" 
+                                        <a href="https://mack-trading-fn-4td6.vercel.app/login" 
                                            style="background-color: #007bff; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">
                                            Login to Your Account
                                         </a>
