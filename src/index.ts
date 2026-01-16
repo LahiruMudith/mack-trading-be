@@ -19,7 +19,7 @@ const express = require('express')
 const app = express()
 
 app.use(cors({
-    origin: ["https://mack-trading-fn-4td6.vercel.app"],
+    origin: ["http://localhost:5173", "https://mack-trading-fn-4td6.vercel.app"],
     credentials: true
 }));
 
