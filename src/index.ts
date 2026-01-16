@@ -21,7 +21,7 @@ const app = express()
 app.use(cors({
     origin: [
         "http://localhost:5173",                 // Local Frontend (Vite)
-        "https://mack-trading-cool-site.vercel.app" // Production Frontend
+        "https://mack-trading-fn-4td6.vercel.app/" // Production Frontend
     ],
     credentials: true
 }))
