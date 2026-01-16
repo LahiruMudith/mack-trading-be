@@ -8,12 +8,14 @@ import crypto from 'crypto';
 import jwt, {JwtPayload} from "jsonwebtoken";
 import dotenv from "dotenv";
 import {authRequest} from "../middelware/auth";
+import connectDB from "../util/db";
 dotenv.config()
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
 export const saveUser = async (req: Request, res: Response) => {
     try {
+        await connectDB();
         const { email, name, password } = req.body;
 
         if (!name || !password || !email) {
