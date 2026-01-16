@@ -72,7 +72,6 @@ export const addToCart = async (req: authRequest, res: Response) => {
     }
 };
 
-// --- GET: Fetch Cart & Total ---
 export const getCart = async (req: authRequest, res: Response) => {
     try {
         const cart = await Cart.findOne({ user: req.user._id })
@@ -85,14 +84,11 @@ export const getCart = async (req: authRequest, res: Response) => {
             });
         }
 
-        // 1. Calculate Total Dynamically
         const totalAmount = calculateCartTotal(cart);
 
-        // 2. (Optional) Save this total to the database if you want to persist it
         cart.totalAmount = totalAmount;
         await cart.save();
 
-        // 3. Return the calculated total along with items
         res.status(200).json({
             _id: cart._id,
             items: cart.items,
@@ -105,7 +101,6 @@ export const getCart = async (req: authRequest, res: Response) => {
     }
 };
 
-// --- PUT: Update Quantity ---
 export const updateCartItem = async (req: authRequest, res: Response) => {
     const { itemId } = req.params;
     const { quantity } = req.body;
@@ -115,11 +110,9 @@ export const updateCartItem = async (req: authRequest, res: Response) => {
 
         if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-        // Find the specific item in the items array
         const itemIndex = cart.items.findIndex(item => item.product.toString() === itemId);
 
         if (itemIndex > -1) {
-            // Update quantity directly
             cart.items[itemIndex].quantity = quantity;
 
             // Recalculate totalAmount (optional, but good practice)
@@ -136,16 +129,14 @@ export const updateCartItem = async (req: authRequest, res: Response) => {
     }
 };
 
-// --- DELETE: Remove Item ---
 export const removeCartItem = async (req: authRequest, res: Response) => {
     const { itemId } = req.params;
 
     try {
-        // Use MongoDB $pull to remove the item efficiently
         await Cart.findOneAndUpdate(
             { user: req.user._id },
             { $pull: { items: { _id: itemId } } },
-            { new: true } // Return the updated doc
+            { new: true }
         );
 
         res.status(200).json({ message: "Item removed" });

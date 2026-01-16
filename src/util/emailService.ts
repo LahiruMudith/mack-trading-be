@@ -134,7 +134,7 @@ export const sendOrderConfirmationEmail = async (toEmail: string, order: any, us
                 
                 <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                     <p><strong>Order ID:</strong> ${order.tracking_number}</p>
-                    <p><strong>Total Amount:</strong> LKR ${order.totalAmount.toFixed(2)}</p>
+                    <p><strong>Total Amount:</strong> LKR ${order.totalAmount}</p>
                     <p><strong>Status:</strong> ${order.status}</p>
                 </div>
 

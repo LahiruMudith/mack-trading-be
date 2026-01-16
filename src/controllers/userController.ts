@@ -297,38 +297,31 @@ export const updatePassword = async (req: authRequest, res: Response) => {
     try {
         const { currentPassword, newPassword } = req.body;
 
-        // 1. Get the User ID from the request (attached by your auth middleware)
-        // Adjust 'req.user.id' based on how your middleware attaches the user
         const userId = (req as any).user?._id;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized: User not found in session." });
         }
 
-        // 2. Find the user in the database
         const user = await User.findById(userId).select('+password'); // Ensure password field is selected if hidden by default
 
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        // 3. Verify the Current Password
         const isMatch = await bcrypt.compare(currentPassword, user.password);
 
         if (!isMatch) {
             return res.status(400).json({ message: "Current password is incorrect." });
         }
 
-        // 4. Validate New Password Strength (Optional but recommended)
         if (newPassword.length < 6) {
             return res.status(400).json({ message: "New password must be at least 6 characters long." });
         }
 
-        // 5. Hash the New Password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        // 6. Update and Save
         user.password = hashedPassword;
         await user.save();
 
