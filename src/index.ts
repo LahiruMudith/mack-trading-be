@@ -18,10 +18,17 @@ const SERVER_PORT = process.env.SERVER_PORT
 const express = require('express')
 const app = express()
 
-app.use(cors({
+const corsOptions = {
     origin: ["http://localhost:5173", "https://mack-trading-fn-4td6.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Explicitly handle Preflight requests
+app.options('*', cors(corsOptions));
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
