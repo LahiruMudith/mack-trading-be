@@ -3,12 +3,13 @@ import {User} from "../models/User";
 import bcrypt from 'bcrypt';
 import {signAccessToken} from "../util/token";
 import {signRefreshToken} from "../util/refreshToken";
-import {sendPasswordEmail, sendUserWelcomeEmail} from "../util/emailService";
+import {sendOrderConfirmationEmail, sendPasswordEmail, sendUserWelcomeEmail} from "../util/emailService";
 import crypto from 'crypto';
 import jwt, {JwtPayload} from "jsonwebtoken";
 import dotenv from "dotenv";
 import {authRequest} from "../middelware/auth";
 import connectDB from "../util/db";
+import {admin} from "../util/firebaseAdmin";
 dotenv.config()
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
@@ -163,63 +164,92 @@ export const userLogin = async (req: Request, res: Response) => {
 
 export const googleLogin = async (req: Request, res: Response) => {
     try {
-        const { email, name } = req.body;
+        const { idToken } = req.body as { idToken?: string };
 
-        let user = await User.findOne({ email: email });
+        if (!idToken) {
+            return res.status(400).json({ message: "idToken is required" });
+        }
+
+        // 1) Verify Firebase ID token
+        const decoded = await admin.auth().verifyIdToken(idToken);
+
+        const email = decoded.email;
+        const name = decoded.name || "Unknown User";
+
+        if (!email) {
+            return res.status(400).json({ message: "No email in token" });
+        }
+
+        // Optional (recommended):
+        if (decoded.email_verified !== true) {
+          return res.status(403).json({ message: "Email not verified" });
+        }
+
+        // 2) Find or create user (NO random password)
+        let user = await User.findOne({ email });
         let isNewUser = false;
 
         if (!user) {
             isNewUser = true;
 
-            const rawPassword = crypto.randomBytes(5).toString('hex');
-
-            // Password එක Hash කරන්න
-            const hashedPassword = await bcrypt.hash(rawPassword, 10);
+            const password = crypto.randomBytes(6).toString('hex');
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
 
             user = new User({
                 name,
                 email,
-                password: hashedPassword
+                password:hashedPassword
             });
 
             user = await user.save();
 
-            sendPasswordEmail(email, rawPassword);
+            try {
+                await sendUserWelcomeEmail(user.email, user.name, password);
+            } catch (emailErr) {
+                console.error("Email sending failed (non-critical):", emailErr);
+            }
+        } else {
+            // Optional: keep profile updated + store firebase uid if missing
+            const updates: any = {};
+            if (name && user.name !== name) updates.name = name;
+
+            if (Object.keys(updates).length) {
+                await User.updateOne({ _id: user._id }, { $set: updates });
+            }
         }
 
+        // 3) Your existing tokens (your app session)
         const accessToken = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
 
-        // Access Token Cookie
-        res.cookie('accessToken', accessToken, {
-            maxAge: 60 * 60 * 1000
+        // If you truly want Bearer auth only, you can STOP setting cookies.
+        // But leaving this as-is since your current app uses cookies.
+        res.cookie("accessToken", accessToken, {
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
         });
 
-        // Refresh Token Cookie
-        res.cookie('refreshToken', refreshToken, {
-            maxAge: 7 * 24 * 60 * 60 * 1000
+        res.cookie("refreshToken", refreshToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
         });
-        // //email
-        // res.cookie('userEmail', user.email, {
-        //     httpOnly: false,
-        //     secure: process.env.NODE_ENV === 'production',
-        //     sameSite: 'strict',
-        //     maxAge: 60 * 60 * 1000
-        // });
 
-        // Response එක යවන්න
-        res.status(isNewUser ? 201 : 200).json({
+        return res.status(isNewUser ? 201 : 200).json({
             email: user.email,
             role: user.role,
-            isNewUser: isNewUser,
+            isNewUser,
             accessToken,
-            refreshToken
+            refreshToken,
         });
-
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            message: "Internal server error during Google Login"
+        return res.status(401).json({
+            message: "Invalid or expired Firebase token",
         });
     }
 };

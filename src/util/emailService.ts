@@ -32,7 +32,8 @@ export const sendPasswordEmail = async (email: string, password: string) => {
     }
 };
 
-export const sendUserWelcomeEmail = async (email: string, name: string) => {
+// 1. Added 'password' to the parameters
+export const sendUserWelcomeEmail = async (email: string, name: string, password?: string) => {
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -46,19 +47,15 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
         <body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f4f4f4;">
-            
             <table role="presentation" style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td align="center" style="padding: 20px 0;">
-                        
                         <table role="presentation" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
                             
                             <tr>
                                 <td style="background-color: #1a202c; padding: 30px; text-align: center;">
                                     <img src="https://res.cloudinary.com/dkidles6w/image/upload/v1763217901/logo-remove-bg_qapadg.png" 
-                                         alt="Mack Trading Logo" 
-                                         style="max-width: 150px; height: auto; display: block; margin: 0 auto;"
-                                    />
+                                         alt="Mack Trading Logo" style="max-width: 150px; height: auto; display: block; margin: 0 auto;"/>
                                 </td>
                             </tr>
 
@@ -67,9 +64,14 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
                                     <h2 style="margin: 0 0 20px 0; color: #2d3748; font-size: 24px;">Welcome, ${name}!</h2>
                                     
                                     <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 1.6;">
-                                        Thank you for registering with <strong>Mack Trading</strong>. We are thrilled to have you on board! Your account has been successfully created.
+                                        Thank you for registering with <strong>Mack Trading</strong> using your Google account.
                                     </p>
-                                    
+
+                                    <div style="background-color: #fff5f5; border: 1px dashed #feb2b2; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                                        <p style="margin: 0 0 10px 0; color: #c53030; font-weight: bold; font-size: 14px; text-transform: uppercase;">⚠️ Action Required: Temporary Password</p>
+                                        <p style="margin: 0; font-size: 22px; letter-spacing: 2px; color: #2d3748; font-family: 'Courier New', monospace;"><strong>${password}</strong></p>
+                                        <p style="margin: 10px 0 0 0; color: #718096; font-size: 13px;">Please login and <strong>change this password immediately</strong> for your security.</p>
+                                    </div>
                                     <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 1.6;">
                                         You can now access your dashboard and start trading.
                                     </p>
@@ -80,10 +82,6 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
                                            Login to Your Account
                                         </a>
                                     </div>
-
-                                    <p style="margin: 0; font-size: 16px; line-height: 1.6;">
-                                        If you have any questions, feel free to reply to this email.
-                                    </p>
                                 </td>
                             </tr>
 
@@ -92,17 +90,12 @@ export const sendUserWelcomeEmail = async (email: string, name: string) => {
                                     <p style="margin: 0 0 10px 0; color: #888888; font-size: 12px;">
                                         &copy; ${new Date().getFullYear()} Mack Trading. All rights reserved.
                                     </p>
-                                    <p style="margin: 0; color: #888888; font-size: 12px;">
-                                        Powered by <strong>Web Sonic Softwares</strong>
-                                    </p>
                                 </td>
                             </tr>
-
                         </table>
                     </td>
                 </tr>
             </table>
-            
         </body>
         </html>
     `
