@@ -226,17 +226,17 @@ export const googleLogin = async (req: Request, res: Response) => {
         // If you truly want Bearer auth only, you can STOP setting cookies.
         // But leaving this as-is since your current app uses cookies.
         res.cookie("accessToken", accessToken, {
-            maxAge: 60 * 60 * 1000,
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
+            maxAge: 60 * 60 * 1000,
         });
 
         res.cookie("refreshToken", refreshToken, {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
+            maxAge: 60 * 60 * 1000,
         });
 
         return res.status(isNewUser ? 201 : 200).json({

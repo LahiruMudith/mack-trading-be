@@ -14,8 +14,6 @@ pnpm-debug.log*
 *.log
 
 # Environment files
-.env
-.env.local
 .env.*.local
 
 # Coverage and test output
@@ -34,7 +32,6 @@ coverage/
 # Editor/IDE
 .idea/
 *.iml
-.vscode/
 
 # OS files
 .DS_Store
@@ -44,3 +41,4 @@ coverage/
 
 # Firebase
 serviceAccount.json
+config.bat
